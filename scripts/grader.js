@@ -16,7 +16,7 @@ I run a weekly Web Design Club for high schoolers -- if you're interested, let m
 ~ Christina
         `);
 
-    const HW = [3];     // update with new homeworks
+    const HW = [3, 4];     // update with new homeworks
 
     var dialog = document.querySelector('dialog');
     if (!dialog.showModal) {

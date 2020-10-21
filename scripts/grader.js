@@ -16,7 +16,7 @@ I run a weekly Web Design Club for high schoolers -- if you're interested, let m
 ~ Christina
         `);
 
-    const HW = [3, 4];     // update with new homeworks
+    const HW = [5, 4, 3];     // update with new homeworks
 
     var dialog = document.querySelector('dialog');
     if (!dialog.showModal) {
@@ -65,7 +65,7 @@ function grader(hw) {
 
 function grade(code, hw) {
     let fullPoints = {};
-    let results = scores => {
+    let results = (scores, cases) => {
         $('#file-btn').hide();
         $('#file-btn-disabled').show();
         $('#loading').hide();
@@ -76,6 +76,17 @@ function grade(code, hw) {
                 color = "green";
             }
             display += `<div style="color: ${color};">Problem ${num}: ${scores[num]}/${fullPoints[num]} test case${fullPoints[num] == 1 ? '' : 's'}</div>`;
+            display += `<div style="margin-left: 25px; margin-bottom: 50px;">`;
+            let i = 1;
+            for (const c in cases[num]) {
+                if (cases[num][c]) {
+                    display += `<div>Case ${i} passed!</div>`;
+                } else {
+                    display += `<div>Case ${i} failed with input: ${c}</div>`;
+                }
+                i++;
+            }
+            display += `</div>`;
         }
         $('#score').html(display);
         $('#score').show();
@@ -99,12 +110,12 @@ function grade(code, hw) {
                         if (c[0] == '') break;
                         fullPoints[i]++;
                         let prev = callback;
-                        callback = scores => {
-                            run(code, c[0], c[1], scores, i, prev, hw);
+                        callback = (scores, cases) => {
+                            run(code, c[0], c[1], scores, i, prev, hw, cases);
                         }
                     }
                 });
-                callback({});
+                callback({}, []);
             } else {
                 dialog(hwErrMessage);
             }
@@ -112,7 +123,7 @@ function grade(code, hw) {
     });
 }
 
-function run(code, call, expected, scores, num, callback, hw) {
+function run(code, call, expected, scores, num, callback, hw, cases) {
     pypyjs.exec(
         code + `result = prob_${num}("${call}")`
     ).then(function () {
@@ -131,7 +142,9 @@ function run(code, call, expected, scores, num, callback, hw) {
         } else {
             scores[num] = (correct ? 1 : 0);
         }
-        callback(scores);
+        if (!cases[num]) cases[num] = {};
+        cases[num][call] = correct;
+        callback(scores, cases);
     }).catch(err => {
         $('#loading').hide();
         console.log(err);
